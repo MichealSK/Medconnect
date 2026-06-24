@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: medconnect
+resources:
+  - 00-namespace.yaml
+  - 01-database-secret.yaml
+  - 02-database-configmap.yaml
+  - 03-database-primary-service.yaml
+  - 04-database-primary-statefulset.yaml
+  - 05-database-replica-service.yaml
+  - 06-database-replica-statefulset.yaml
+  - 07-backend-configmap.yaml
+  - 08-backend-secret.yaml
+  - 09-backend-deployment.yaml
+  - 10-backend-service.yaml
+  - 11-frontend-deployment.yaml
+  - 12-frontend-service.yaml
+  - 13-application-ingress.yaml
+  - 14-mailhog.yaml

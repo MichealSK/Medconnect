@@ -1,0 +1,20 @@
+<section class="w-full bg-white py-16 lg:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl lg:text-4xl font-medium text-[#0F1F38]">How it works</h2>
+      <p class="mt-3 text-lg text-[#64748B] max-w-2xl mx-auto">
+        Get the care you need in three simple steps
+      </p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      @for (step of steps; track step.step) {
+        <app-step-card
+          [step]="step.step"
+          [title]="step.title"
+          [description]="step.description"
+          [icon]="step.icon"
+        />
+      }
+    </div>
+  </div>
+</section>

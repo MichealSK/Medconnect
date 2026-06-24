@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: medconnect
+  labels:
+    app.kubernetes.io/name: medconnect
+    app.kubernetes.io/component: database
+data:
+  postgresql.conf: |
+    listen_addresses = '*'
+    port = 5432
+    max_connections = 100
+
+    # Required for the read replica.
+    wal_level = replica
+    max_wal_senders = 10
+    max_replication_slots = 10
+    wal_keep_size = 512MB
+    hot_standby = on
+
+    # Keep the pg_hba rules in a ConfigMap so both primary and replica are reproducible.
+    hba_file = '/etc/postgresql/pg_hba.conf'
+
+  pg_hba.conf: |
+    local   all             all                                     trust
+    host    all             all             127.0.0.1/32            scram-sha-256
+    host    all             all             ::1/128                 scram-sha-256
+    host    all             all             0.0.0.0/0               scram-sha-256
+    host    all             all             ::/0                    scram-sha-256
+    host    replication     replicator      0.0.0.0/0               scram-sha-256
+    host    replication     replicator      ::/0                    scram-sha-256
+
+  01-create-replication-user.sh: |
+    #!/bin/sh
+    set -eu
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    DO \$\$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${POSTGRES_REPLICATION_USER}') THEN
+        CREATE ROLE ${POSTGRES_REPLICATION_USER} WITH REPLICATION LOGIN PASSWORD '${POSTGRES_REPLICATION_PASSWORD}';
+      END IF;
+    END
+    \$\$;
+    EOSQL

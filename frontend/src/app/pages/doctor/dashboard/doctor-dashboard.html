@@ -1,0 +1,80 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <div class="w-full lg:w-64 shrink-0">
+      <app-profile-card />
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <div class="mb-8">
+        <h1 class="text-2xl font-medium text-[#0F1F38]">
+          Good morning, {{ user?.lastName! | fullName }}
+        </h1>
+        <p class="text-[#64748B] mt-1">{{ today }}</p>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <app-stat-card
+          label="Today's Appointments"
+          [value]="todayCount()"
+          icon="heroCalendarDays"
+          iconBg="bg-[#DBEAFE]"
+          iconColor="text-[#1B3A6B]"
+        />
+        <app-stat-card
+          label="Upcoming"
+          [value]="upcomingCount()"
+          icon="heroClock"
+          iconBg="bg-[#EEF2FF]"
+          iconColor="text-[#1B3A6B]"
+        />
+        <app-stat-card
+          label="Completed"
+          [value]="completedCount()"
+          icon="heroCheckCircle"
+          iconBg="bg-[#D1FAE5]"
+          iconColor="text-[#065F46]"
+        />
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-6">
+        <div class="flex-1 space-y-6">
+          <app-appointment-list
+            title="Upcoming Appointments"
+            [appointments]="upcomingAppointments()"
+            mode="doctor"
+            variant="upcoming"
+            emptyMessage="No upcoming appointments"
+          />
+
+          <app-appointment-list
+            title="Past Appointments"
+            [appointments]="pastAppointments()"
+            mode="doctor"
+            variant="past"
+            emptyMessage="No past appointments"
+          />
+
+          <app-forum-activity />
+        </div>
+
+        <div class="w-full lg:w-64 shrink-0 space-y-6">
+          <div class="bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm p-5">
+            <a
+              routerLink="/doctor/availability"
+              class="flex items-center gap-3 p-3 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#1B3A6B] transition-all"
+            >
+              <div
+                class="w-8 h-8 rounded-lg bg-[#DBEAFE] flex items-center justify-center shrink-0"
+              >
+                <ng-icon name="heroClock" size="16" class="text-[#1B3A6B]" />
+              </div>
+              <span class="text-sm font-medium text-[#0F1F38]">Manage Availability</span>
+            </a>
+          </div>
+
+          <app-help-card />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

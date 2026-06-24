@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-replica
+  namespace: medconnect
+  labels:
+    app.kubernetes.io/name: medconnect
+    app.kubernetes.io/component: database
+    app.kubernetes.io/role: replica
+spec:
+  serviceName: postgres-replica-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: medconnect
+      app.kubernetes.io/component: database
+      app.kubernetes.io/role: replica
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: medconnect
+        app.kubernetes.io/component: database
+        app.kubernetes.io/role: replica
+    spec:
+      initContainers:
+        - name: clone-primary
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+
+              if [ -s "$PGDATA/PG_VERSION" ]; then
+                echo "Replica data directory already initialized. Skipping base backup."
+                exit 0
+              fi
+
+              rm -rf "$PGDATA"/*
+
+              echo "Waiting for postgres-primary to accept connections..."
+              until pg_isready -h postgres-primary -p 5432 -U "$POSTGRES_USER"; do
+                sleep 2
+              done
+
+              echo "Creating base backup from postgres-primary..."
+              export PGPASSWORD="$POSTGRES_REPLICATION_PASSWORD"
+              pg_basebackup \
+                -h postgres-primary \
+                -p 5432 \
+                -D "$PGDATA" \
+                -U "$POSTGRES_REPLICATION_USER" \
+                -Fp \
+                -Xs \
+                -P
+
+              cat > "$PGDATA/postgresql.auto.conf" <<EOCONF
+              primary_conninfo = 'host=postgres-primary port=5432 user=${POSTGRES_REPLICATION_USER} password=${POSTGRES_REPLICATION_PASSWORD} application_name=${HOSTNAME}'
+              hot_standby = on
+              EOCONF
+
+              touch "$PGDATA/standby.signal"
+              chown -R postgres:postgres /var/lib/postgresql/data
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_REPLICATION_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_REPLICATION_USER
+            - name: POSTGRES_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_REPLICATION_PASSWORD
+          volumeMounts:
+            - name: postgres-replica-data
+              mountPath: /var/lib/postgresql/data
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          args:
+            - postgres
+            - -c
+            - config_file=/etc/postgresql/postgresql.conf
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: postgres-replica-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-config
+              mountPath: /etc/postgresql
+      volumes:
+        - name: postgres-config
+          configMap:
+            name: postgres-config
+            items:
+              - key: postgresql.conf
+                path: postgresql.conf
+              - key: pg_hba.conf
+                path: pg_hba.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-replica-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi

@@ -1,0 +1,256 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <app-back-link route="/patient/dashboard" label="Back to dashboard" />
+
+  @if (appointment()) {
+    <div class="space-y-6">
+      <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <app-avatar [name]="appointment()!.doctorName" size="xl" />
+            <div>
+              <h1 class="text-xl font-medium text-[#0F1F38]">
+                {{ appointment()!.doctorName | fullName }}
+              </h1>
+              <p class="text-sm text-[#64748B]">{{ appointment()!.specialty }}</p>
+              <p class="text-sm text-[#64748B] mt-1">
+                {{ appointment()!.scheduledAt | date: 'EEEE, MMMM d, y' }} at
+                {{ appointment()!.scheduledAt | date: 'h:mm a' }}
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-col items-start sm:items-end gap-3">
+            <app-status-badge [status]="badgeStatus()" />
+            <div class="flex items-center gap-2">
+              @if (appointment()!.jitsiUrl && appointment()!.status === 'CONFIRMED') {
+                <a
+                  [routerLink]="['/meeting', appointment()!.jitsiRoom]"
+                  class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+                >
+                  Join Call
+                </a>
+              }
+              @if (appointment()!.status === 'CONFIRMED') {
+                <button
+                  (click)="showCancelModal.set(true)"
+                  class="px-4 py-2 text-sm font-medium text-red-500 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (!isPast()) {
+        @if (!symptomForm() && !formSubmitted()) {
+          <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+            <h2 class="text-base font-medium text-[#0F1F38] mb-1">Pre-consultation form</h2>
+            <p class="text-sm text-[#64748B] mb-6">
+              Help your doctor prepare by filling in your symptoms before the appointment.
+            </p>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0F1F38] mb-1.5">
+                  Main symptoms <span class="text-red-500">*</span>
+                </label>
+                <textarea
+                  [(ngModel)]="symptomsText"
+                  rows="3"
+                  placeholder="Describe your main symptoms..."
+                  class="w-full px-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors resize-none placeholder:text-[#94A3B8]"
+                ></textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-[#0F1F38] mb-1.5"
+                    >Duration (days)</label
+                  >
+                  <input
+                    type="number"
+                    [(ngModel)]="durationDays"
+                    min="1"
+                    placeholder="e.g. 3"
+                    class="w-full px-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors placeholder:text-[#94A3B8]"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-[#0F1F38] mb-1.5">
+                    Severity ({{ severity }}/10)
+                  </label>
+                  <input
+                    type="range"
+                    [(ngModel)]="severity"
+                    min="1"
+                    max="10"
+                    class="w-full accent-[#1B3A6B] mt-2"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0F1F38] mb-1.5"
+                  >Current medications</label
+                >
+                <textarea
+                  [(ngModel)]="medications"
+                  rows="2"
+                  placeholder="List any medications you are currently taking..."
+                  class="w-full px-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors resize-none placeholder:text-[#94A3B8]"
+                ></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0F1F38] mb-1.5"
+                  >Known conditions</label
+                >
+                <textarea
+                  [(ngModel)]="knownConditions"
+                  rows="2"
+                  placeholder="Any known medical conditions..."
+                  class="w-full px-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors resize-none placeholder:text-[#94A3B8]"
+                ></textarea>
+              </div>
+              <button
+                (click)="submitSymptomForm()"
+                [disabled]="!symptomsText || isSubmittingForm()"
+                class="w-full py-2.5 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {{ isSubmittingForm() ? 'Submitting...' : 'Submit form' }}
+              </button>
+            </div>
+          </div>
+        } @else {
+          <app-symptom-form-view [form]="symptomForm()!" title="Pre-consultation form submitted" />
+        }
+      }
+
+      <app-ai-brief [brief]="symptomForm()?.aiBrief ?? aiBrief()" />
+
+      @if (notes()) {
+        <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+          <h2 class="text-base font-medium text-[#0F1F38] mb-4">Doctor's notes</h2>
+          <p class="text-sm text-[#64748B] leading-relaxed whitespace-pre-line">
+            {{ notes()!.notesText }}
+          </p>
+          <p class="text-xs text-[#94A3B8] mt-3">
+            Written by {{ notes()!.doctorName | fullName }} on
+            {{ notes()!.createdAt | date: 'MMM d, y' }}
+          </p>
+        </div>
+      }
+
+      @if (isCompleted()) {
+        @if (reviewSubmitted()) {
+          <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded-full bg-[#DCFCE7] flex items-center justify-center">
+                <svg
+                  class="w-3 h-3 text-[#16A34A]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2.5"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-base font-medium text-[#0F1F38]">Review submitted — thank you!</h2>
+            </div>
+          </div>
+        } @else {
+          <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+            <h2 class="text-base font-medium text-[#0F1F38] mb-1">Leave a review</h2>
+            <p class="text-sm text-[#64748B] mb-6">
+              How was your consultation with {{ appointment()!.doctorName | fullName }}?
+            </p>
+            @if (reviewError()) {
+              <div
+                class="flex items-center gap-2 p-3 rounded-md bg-[#FEE2E2] text-[#991B1B] text-sm mb-4"
+              >
+                {{ reviewError() }}
+              </div>
+            }
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0F1F38] mb-2">Rating</label>
+                <div class="flex items-center gap-1">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <button (click)="setRating(star)" type="button">
+                      <svg
+                        class="w-8 h-8 transition-colors"
+                        [class]="star <= reviewRating() ? 'text-[#F59E0B]' : 'text-[#E2E8F0]'"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
+                      </svg>
+                    </button>
+                  }
+                  <span class="text-sm text-[#64748B] ml-2">{{ reviewRating() }}/5</span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0F1F38] mb-1.5"
+                  >Comment (optional)</label
+                >
+                <textarea
+                  [ngModel]="reviewComment()"
+                  (ngModelChange)="reviewComment.set($event)"
+                  rows="3"
+                  placeholder="Share your experience..."
+                  class="w-full px-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors resize-none placeholder:text-[#94A3B8]"
+                ></textarea>
+              </div>
+              <button
+                (click)="submitReview()"
+                [disabled]="isSubmittingReview()"
+                class="w-full py-2.5 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {{ isSubmittingReview() ? 'Submitting...' : 'Submit review' }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (showCancelModal()) {
+    <div
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      (click)="showCancelModal.set(false)"
+    >
+      <div
+        class="bg-white rounded-[10px] shadow-xl w-full max-w-sm p-6"
+        (click)="$event.stopPropagation()"
+      >
+        <h3 class="text-base font-medium text-[#0F1F38] mb-2">Cancel appointment?</h3>
+        <p class="text-sm text-[#64748B] mb-6">
+          Are you sure you want to cancel your appointment with Dr.
+          {{ appointment()!.doctorName }} on {{ appointment()!.scheduledAt | date: 'MMM d' }} at
+          {{ appointment()!.scheduledAt | date: 'h:mm a' }}? This action cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            (click)="showCancelModal.set(false)"
+            class="flex-1 py-2.5 text-sm font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] rounded-md hover:bg-[#E2E8F0] transition-colors"
+          >
+            Keep appointment
+          </button>
+          <button
+            (click)="cancelAppointment()"
+            [disabled]="isCancelling()"
+            class="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 disabled:opacity-40 transition-colors"
+          >
+            {{ isCancelling() ? 'Cancelling...' : 'Yes, cancel' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

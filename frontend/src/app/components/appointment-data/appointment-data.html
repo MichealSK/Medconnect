@@ -1,0 +1,68 @@
+<div
+  class="flex items-center justify-between px-5 py-4"
+  [class.bg-[#F8FAFC]]="variant() === 'today'"
+  [class.rounded-lg]="variant() === 'today'"
+  [class.p-4]="variant() === 'today'"
+>
+  <div class="flex items-center gap-4">
+    @if (variant() === 'today') {
+      <span class="text-sm font-medium text-[#0F1F38] w-20 shrink-0">
+        {{ appointment().scheduledAt | date: 'h:mm a' }}
+      </span>
+    }
+
+    @if (mode() === 'patient') {
+      <app-avatar [name]="appointment().doctorName!" />
+    } @else {
+      <app-avatar [name]="appointment().patientName!" color="light-blue" />
+    }
+
+    <div>
+      @if (mode() === 'patient') {
+        <a
+          [routerLink]="['/doctors', appointment().doctorId]"
+          class="text-sm font-medium text-[#0F1F38] hover:text-[#1B3A6B] transition-colors"
+        >
+          {{ appointment().doctorName | fullName }}
+        </a>
+        <p class="text-xs text-[#64748B]">{{ appointment().specialty }}</p>
+      } @else {
+        <p class="text-sm font-medium text-[#0F1F38]">
+          {{ appointment().patientName | titlecase }}
+        </p>
+        @if (variant() !== 'today') {
+          <p class="text-xs text-[#64748B]">
+            {{ appointment().scheduledAt | date: 'MMM d, y · h:mm a' }}
+          </p>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    @if (variant() !== 'today') {
+      <div class="text-right">
+        <p class="text-sm text-[#0F1F38]">{{ appointment().scheduledAt | date: 'MMM d, y' }}</p>
+        <p class="text-xs text-[#64748B]">{{ appointment().scheduledAt | date: 'h:mm a' }}</p>
+      </div>
+    }
+
+    <app-status-badge [status]="badgeStatus()" />
+
+    @if (appointment().jitsiRoom && canJoin()) {
+      <a
+        [routerLink]="['/meeting', appointment().jitsiRoom]"
+        class="px-3 py-1.5 text-xs font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+      >
+        Join
+      </a>
+    }
+
+    <a
+      [routerLink]="[viewRoute()]"
+      class="px-3 py-1.5 text-xs font-medium text-[#1B3A6B] border border-[#1B3A6B] rounded-md hover:bg-[#EEF2FF] transition-colors"
+    >
+      View
+    </a>
+  </div>
+</div>

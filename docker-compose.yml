@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medconnect-db
+    environment:
+      POSTGRES_DB: medconnect
+      POSTGRES_USER: medconnect
+      POSTGRES_PASSWORD: medconnect
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medconnect -d medconnect"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: medconnect-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medconnect-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/medconnect
+      DB_USER: medconnect
+      DB_PASSWORD: medconnect
+      JWT_SECRET: change-this-dev-secret-change-this-dev-secret
+      JWT_EXPIRY_MS: 86400000
+      JWT_REFRESH_EXPIRY_MS: 604800000
+      FRONTEND_URL: http://localhost:4200
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_ENABLED: true
+      MAIL_SMTP_AUTH: false
+      MAIL_SMTP_STARTTLS_ENABLE: false
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: noreply@medconnect.com
+      AI_API_KEY: ""
+      AI_MODEL: llama-3.3-70b-versatile
+      AI_BASE_URL: https://api.groq.com/openai/v1/chat/completions
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: medconnect-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

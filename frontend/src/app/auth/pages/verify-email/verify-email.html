@@ -1,0 +1,78 @@
+<div class="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
+  <div class="w-full max-w-420">
+    <div class="bg-white border border-[#E2E8F0] rounded-12 p-8 text-center">
+      <div class="flex justify-center mb-8">
+        <a routerLink="/home" class="flex items-center gap-2">
+          <div class="flex items-center justify-center w-10 h-10 bg-[#1B3A6B] rounded-md">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          </div>
+          <span class="text-xl font-medium text-[#1B3A6B]">MedConnect</span>
+        </a>
+      </div>
+
+      @if (isLoading()) {
+        <p class="text-sm text-[#64748B]">Verifying your email...</p>
+      }
+
+      @if (isSuccess()) {
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h1 class="text-2xl font-medium text-[#0F1F38]">Email verified</h1>
+          <p class="text-sm text-[#64748B]">
+            Your email has been verified successfully. You can now log in.
+          </p>
+          <a
+            routerLink="/auth/login"
+            class="w-full py-2.5 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+          >
+            Go to login
+          </a>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+          <h1 class="text-2xl font-medium text-[#0F1F38]">Verification failed</h1>
+          <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+          <a
+            routerLink="/auth/register"
+            class="text-sm text-[#1B3A6B] hover:text-[#162F58] font-medium"
+          >
+            Back to register
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</div>

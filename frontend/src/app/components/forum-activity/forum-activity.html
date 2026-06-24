@@ -1,0 +1,89 @@
+<div
+  class="bg-white rounded-xl border border-[#E2E8F0]"
+  style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06)"
+>
+  <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0]">
+    <h2 class="text-base font-medium text-[#0F1F38]">Forum Activity</h2>
+    <a routerLink="/forum" class="text-sm text-[#1B3A6B] hover:underline">Go to Forum</a>
+  </div>
+
+  <div class="flex border-b border-[#E2E8F0]">
+    @for (tab of tabs; track tab.id) {
+      <button
+        (click)="setTab(tab.id)"
+        class="flex-1 px-4 py-3 text-sm font-medium transition-colors relative"
+        [class]="activeTab() === tab.id ? 'text-[#1B3A6B]' : 'text-[#64748B] hover:text-[#0F1F38]'"
+      >
+        {{ tab.label }}
+        <span
+          class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+          [class]="
+            activeTab() === tab.id ? 'bg-[#DBEAFE] text-[#1B3A6B]' : 'bg-[#F1F5F9] text-[#64748B]'
+          "
+        >
+          {{ activeCount(tab.id) }}
+        </span>
+        @if (activeTab() === tab.id) {
+          <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1B3A6B]"></div>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="divide-y divide-[#E2E8F0]">
+    @if (activePosts().length === 0) {
+      <div class="px-5 py-8 text-center">
+        <p class="text-sm text-[#64748B]">No posts yet</p>
+      </div>
+    }
+
+    @for (post of activePosts(); track post.id) {
+      <a
+        [routerLink]="['/forum', post.id]"
+        class="flex items-start justify-between px-5 py-4 hover:bg-[#F8FAFC] transition-colors"
+      >
+        <div class="flex-1 min-w-0">
+          <span class="text-xs font-medium text-[#1B3A6B] bg-[#EEF2FF] px-2 py-0.5 rounded">
+            {{ categoryLabels[post.category] }}
+          </span>
+          <p class="text-sm font-medium text-[#0F1F38] mt-1.5 line-clamp-1">
+            {{ post.title }}
+          </p>
+          <div class="flex items-center gap-3 mt-2">
+            <span class="text-xs text-[#64748B]">{{ formatDate(post.createdAt) }}</span>
+            <span class="flex items-center gap-1 text-xs text-[#64748B]">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+              {{ post.likesCount }}
+            </span>
+            <span class="flex items-center gap-1 text-xs text-[#64748B]">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              {{ post.commentCount }}
+            </span>
+          </div>
+        </div>
+        <svg
+          class="w-4 h-4 text-[#94A3B8] shrink-0 mt-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    }
+  </div>
+</div>

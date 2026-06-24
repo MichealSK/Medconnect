@@ -1,0 +1,111 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <div class="w-full lg:w-64 shrink-0">
+      <app-profile-card />
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="mb-8">
+        <h1 class="text-2xl font-medium text-[#0F1F38]">
+          Welcome back, {{ user?.firstName | titlecase }}
+        </h1>
+        <p class="text-[#64748B] mt-1">Manage your appointments and health records</p>
+      </div>
+      @if (todayAppointment()) {
+        <div
+          class="mb-6 bg-[#EEF2FF] border border-[#C7D2FE] rounded-[10px] p-4 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-10 h-10 rounded-full bg-[#1B3A6B] flex items-center justify-center shrink-0"
+            >
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-[#0F1F38]">You have an appointment today</p>
+              <p class="text-xs text-[#64748B]">
+                <a
+                  [routerLink]="['/doctors', todayAppointment()!.doctorId]"
+                  class="hover:text-[#1B3A6B] transition-colors"
+                >
+                  {{ todayAppointment()!.doctorName | fullName }}
+                </a>
+                · {{ todayAppointment()!.scheduledAt | date: 'h:mm a' }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            @if (todayAppointment()!.jitsiUrl) {
+              <a
+                [routerLink]="['/meeting', todayAppointment()!.jitsiRoom]"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+              >
+                Join Call
+              </a>
+            }
+            <a
+              [routerLink]="['/patient/appointments', todayAppointment()!.id]"
+              class="px-4 py-2 text-sm font-medium text-[#1B3A6B] border border-[#1B3A6B] rounded-md hover:bg-[#EEF2FF] transition-colors"
+            >
+              View
+            </a>
+          </div>
+        </div>
+      }
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <app-stat-card
+          label="Upcoming"
+          [value]="upcomingAppointments().length"
+          sublabel="appointments"
+          icon="heroCalendarDays"
+          iconBg="bg-[#DBEAFE]"
+          iconColor="text-[#1B3A6B]"
+        />
+        <app-stat-card
+          label="Completed"
+          [value]="pastAppointments().length"
+          sublabel="total"
+          icon="heroCheckCircle"
+          iconBg="bg-[#D1FAE5]"
+          iconColor="text-[#065F46]"
+        />
+        <app-stat-card
+          label="Doctors visited"
+          [value]="uniqueDoctors()"
+          sublabel="unique doctors"
+          icon="heroUserGroup"
+          iconBg="bg-[#F1F5F9]"
+          iconColor="text-[#475569]"
+        />
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <app-appointment-list
+            title="Upcoming Appointments"
+            [appointments]="upcomingAppointments()"
+            mode="patient"
+            variant="upcoming"
+            emptyMessage="No upcoming appointments"
+          />
+          <app-appointment-list
+            title="Past Appointments"
+            [appointments]="pastAppointments()"
+            mode="patient"
+            variant="past"
+            emptyMessage="No past appointments"
+          />
+          <app-forum-activity />
+        </div>
+        <div class="space-y-6">
+          <app-help-card />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

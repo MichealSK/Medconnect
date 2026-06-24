@@ -1,0 +1,85 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <app-back-link route="/doctors" label="Back to search" />
+  @if (doctor()) {
+    <div class="flex flex-col lg:flex-row gap-8">
+      <div class="flex-1 space-y-6">
+        <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+          <div class="flex flex-col sm:flex-row gap-6">
+            <app-avatar [name]="doctor()!.firstName + ' ' + doctor()!.lastName" size="lg" />
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 class="text-2xl font-medium text-[#0F1F38]">{{ doctor()! | fullName }}</h1>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 bg-[#EEF2FF] text-[#1B3A6B] text-xs font-medium rounded-full"
+                >
+                  <ng-icon name="heroCheckBadge" size="12" />
+                  Verified
+                </span>
+              </div>
+              <p class="text-[#64748B] mt-1">{{ doctor()!.specialty }}</p>
+              <div class="flex flex-wrap items-center gap-4 mt-3 text-sm text-[#64748B]">
+                <span>{{ doctor()!.languages.join(', ') }}</span>
+                <span>{{ doctor()!.yearsExperience }} years experience</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+          <h2 class="text-lg font-medium text-[#0F1F38] mb-3">About</h2>
+          <p class="text-sm text-[#64748B] leading-relaxed">{{ doctor()!.bio }}</p>
+        </div>
+
+        <div class="p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+          <h2 class="text-lg font-medium text-[#0F1F38] mb-3">Specializations</h2>
+          <span
+            class="px-3 py-1.5 text-sm bg-[#F8FAFC] text-[#64748B] rounded-md border border-[#E2E8F0]"
+          >
+            {{ doctor()!.specialty }}
+          </span>
+        </div>
+      </div>
+
+      <div class="w-full lg:w-[320px] shrink-0">
+        <div class="sticky top-24 p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+          <h2 class="text-lg font-medium text-[#0F1F38] mb-1">Book a consultation</h2>
+          <p class="text-sm text-[#64748B] mb-6">Duration: 30 minutes</p>
+          <button
+            (click)="openBookingModal()"
+            class="w-full py-3 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+          >
+            Book appointment
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 p-6 bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-[#0F1F38]">Patient Reviews</h2>
+        @if (doctor()!.reviewCount > 0) {
+          <div class="flex items-center gap-1.5">
+            <ng-icon name="lucideStar" size="16" class="text-[#F59E0B]" />
+            <span class="text-sm font-medium text-[#0F1F38]">{{
+              doctor()!.averageRating | number: '1.1-1'
+            }}</span>
+            <span class="text-sm text-[#64748B]">({{ doctor()!.reviewCount }} reviews)</span>
+          </div>
+        }
+      </div>
+      @if (reviews().length === 0) {
+        <p class="text-sm text-[#64748B]">No reviews yet.</p>
+      } @else {
+        <div class="space-y-4">
+          @for (review of reviews(); track review.id) {
+            <app-review-card [review]="review" />
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (modalOpen()) {
+    <app-booking-modal [doctor]="doctor()!" (close)="modalOpen.set(false)" />
+  }
+</div>

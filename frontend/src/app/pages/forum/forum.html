@@ -1,0 +1,223 @@
+<div class="min-h-screen flex flex-col bg-white">
+  <div class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-medium text-[#0F1F38]">Community Forum</h1>
+          <p class="mt-1 text-[#64748B]">Connect, share experiences, and learn from others</p>
+        </div>
+        <button
+          (click)="openModal()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+        >
+          <ng-icon name="heroPlus" size="16" />
+          New Post
+        </button>
+      </div>
+
+      <div class="mt-6 relative">
+        <ng-icon
+          name="heroMagnifyingGlass"
+          size="20"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+        />
+        <input
+          type="text"
+          placeholder="Search discussions..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          class="w-full pl-10 pr-4 py-3 text-sm bg-white border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#1B3A6B] transition-colors"
+        />
+      </div>
+    </div>
+  </div>
+
+  <main class="flex-1">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col lg:flex-row gap-8">
+        <aside class="lg:w-56 shrink-0">
+          <h3 class="text-xs font-medium text-[#64748B] uppercase tracking-wide mb-3">
+            Categories
+          </h3>
+          <nav class="space-y-1">
+            @for (cat of allCategories; track cat) {
+              <button
+                (click)="selectCategory(cat)"
+                [class]="
+                  selectedCategory() === cat
+                    ? 'w-full text-left px-3 py-2 text-sm rounded-md bg-[#1B3A6B] text-white'
+                    : 'w-full text-left px-3 py-2 text-sm rounded-md text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F1F38] transition-colors'
+                "
+              >
+                {{ categoryLabel(cat) }}
+              </button>
+            }
+          </nav>
+        </aside>
+
+        <div class="flex-1 space-y-4">
+          @if (filteredPosts().length === 0) {
+            <div class="text-center py-12">
+              <ng-icon name="heroChatBubbleOvalLeft" size="48" class="mx-auto text-[#E2E8F0]" />
+              <p class="mt-4 text-[#64748B]">No posts found</p>
+            </div>
+          }
+
+          @for (post of filteredPosts(); track post.id) {
+            <a
+              [routerLink]="['/forum', post.id]"
+              class="block bg-white border border-[#E2E8F0] rounded-xl p-5 hover:border-[#CBD5E1] hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+              style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06)"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <app-avatar
+                  [name]="post.authorName"
+                  size="sm"
+                  [color]="post.authorRole === 'DOCTOR' ? 'light-blue' : 'green'"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-medium text-[#0F1F38]">{{
+                      post.authorName | titlecase
+                    }}</span>
+                    @if (post.authorRole === 'DOCTOR') {
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-[#EEF2FF] text-[#1B3A6B] rounded-full"
+                      >
+                        <ng-icon name="heroCheckBadge" size="12" />
+                        Verified Doctor
+                      </span>
+                    } @else {
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-[#D1FAE5] text-[#065F46] rounded-full"
+                      >
+                        Patient
+                      </span>
+                    }
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-[#64748B]">
+                    <span>{{ formatDate(post.createdAt) }}</span>
+                    <span>·</span>
+                    <span class="text-[#1B3A6B]">{{ categoryLabels[post.category] }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <h2 class="text-base font-medium text-[#0F1F38]">
+                {{ post.title }}
+              </h2>
+              <p class="mt-2 text-sm text-[#64748B] line-clamp-2">{{ post.content }}</p>
+
+              <div class="mt-4 flex items-center gap-4">
+                <button
+                  (click)="toggleLike(post.id, $event)"
+                  [class]="
+                    post.likedByMe
+                      ? 'flex items-center gap-1.5 text-sm text-[#1B3A6B] transition-colors'
+                      : 'flex items-center gap-1.5 text-sm text-[#64748B] hover:text-[#1B3A6B] transition-colors'
+                  "
+                >
+                  <ng-icon [name]="post.likedByMe ? 'heroHeartSolid' : 'heroHeart'" size="16" />
+                  {{ post.likesCount }}
+                </button>
+                <span class="flex items-center gap-1.5 text-sm text-[#64748B]">
+                  <ng-icon name="heroChatBubbleOvalLeft" size="16" />
+                  {{ post.commentCount }} comments
+                </span>
+              </div>
+            </a>
+          }
+
+          @if (totalPages() > 1) {
+            <div class="flex items-center justify-center gap-1 pt-4">
+              @for (p of pageNumbers(); track p) {
+                <button
+                  (click)="goToPage(p)"
+                  [class]="
+                    currentPage() === p
+                      ? 'w-8 h-8 text-sm font-medium rounded-md bg-[#1B3A6B] text-white'
+                      : 'w-8 h-8 text-sm font-medium rounded-md text-[#64748B] hover:bg-[#F8FAFC] transition-colors'
+                  "
+                >
+                  {{ p + 1 }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+@if (showNewPostModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div
+      class="bg-white rounded-xl w-full max-w-lg p-6"
+      style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15)"
+    >
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-medium text-[#0F1F38]">Create a new post</h2>
+        <button
+          (click)="closeModal()"
+          class="text-[#64748B] hover:text-[#0F1F38] transition-colors cursor-pointer"
+        >
+          <ng-icon name="heroXMark" size="20" />
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[#0F1F38] mb-1.5">Title</label>
+          <input
+            type="text"
+            [ngModel]="newPostTitle()"
+            (ngModelChange)="newPostTitle.set($event)"
+            placeholder="What's your question or topic?"
+            class="w-full px-3 py-2.5 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[#0F1F38] mb-1.5">Category</label>
+          <select
+            [ngModel]="newPostCategory()"
+            (ngModelChange)="newPostCategory.set($event)"
+            class="w-full px-3 py-2.5 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors"
+          >
+            @for (entry of writableCategories; track entry[0]) {
+              <option [value]="entry[0]">{{ entry[1] }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[#0F1F38] mb-1.5">Content</label>
+          <textarea
+            [ngModel]="newPostContent()"
+            (ngModelChange)="newPostContent.set($event)"
+            placeholder="Share your thoughts, questions, or experiences..."
+            rows="5"
+            class="w-full px-3 py-2.5 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors resize-none"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button
+          (click)="closeModal()"
+          class="px-4 py-2 text-sm font-medium text-[#64748B] hover:text-[#0F1F38] transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="submitPost()"
+          [disabled]="!canSubmit() || isSubmitting()"
+          class="px-4 py-2 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {{ isSubmitting() ? 'Posting...' : 'Post' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

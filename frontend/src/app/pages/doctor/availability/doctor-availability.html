@@ -1,0 +1,127 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <app-back-link route="/doctor/dashboard" label="Back to dashboard" />
+
+  <div class="mb-8">
+    <h1 class="text-2xl font-medium text-[#0F1F38]">Manage Availability</h1>
+    <p class="text-[#64748B] mt-1">Set your available time slots for each day</p>
+  </div>
+
+  <div class="bg-white border border-[#E2E8F0] rounded-[10px] shadow-sm">
+    <div class="flex border-b border-[#E2E8F0] overflow-x-auto">
+      @for (day of dayNames; track $index) {
+        <button
+          (click)="selectedDay.set($index)"
+          class="flex-1 py-4 text-sm font-medium transition-colors relative whitespace-nowrap px-3"
+          [class]="
+            selectedDay() === $index
+              ? 'text-[#1B3A6B] bg-[#F8FAFC]'
+              : 'text-[#64748B] hover:bg-[#F8FAFC]'
+          "
+        >
+          {{ day }}
+          <span
+            class="block text-xs font-normal mt-0.5"
+            [class]="selectedDay() === $index ? 'text-[#1B3A6B]' : 'text-[#94A3B8]'"
+          >
+            {{ weekDates()[$index] }}
+          </span>
+          @if (selectedDay() === $index) {
+            <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1B3A6B]"></div>
+          }
+        </button>
+      }
+    </div>
+
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-[#64748B]">
+          <span class="font-medium text-[#0F1F38]">{{ slotsForSelectedDay().length }}</span>
+          slot{{ slotsForSelectedDay().length === 1 ? '' : 's' }} on {{ dayNames[selectedDay()] }}
+        </p>
+      </div>
+
+      @if (slotsForSelectedDay().length === 0) {
+        <div
+          class="flex flex-col items-center justify-center py-10 text-center border border-dashed border-[#E2E8F0] rounded-[10px] mb-6"
+        >
+          <svg
+            class="w-10 h-10 text-[#CBD5E1] mb-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p class="text-sm text-[#64748B]">No slots for {{ dayNames[selectedDay()] }}</p>
+          <p class="text-xs text-[#94A3B8] mt-1">Add a slot below to make yourself available</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6">
+          @for (slot of slotsForSelectedDay(); track slot.id) {
+            <div
+              class="flex items-center justify-between p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg"
+            >
+              <div>
+                <span class="text-sm font-medium text-[#0F1F38]">{{ slot.startTime }}</span>
+                <span class="text-xs text-[#94A3B8] ml-1">→ {{ slot.endTime }}</span>
+              </div>
+              <button
+                (click)="deleteSlot(slot.id)"
+                [disabled]="deletingId() === slot.id"
+                class="w-6 h-6 rounded-full flex items-center justify-center text-[#94A3B8] hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px]">
+        <p class="text-sm font-medium text-[#0F1F38] mb-3">Add a slot</p>
+        <div class="flex items-center gap-3">
+          <select
+            [ngModel]="newSlotTime()"
+            (ngModelChange)="newSlotTime.set($event)"
+            class="flex-1 px-3 py-2 text-sm bg-white border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors"
+          >
+            @for (time of timeOptions; track time) {
+              <option [value]="time">{{ time }}</option>
+            }
+          </select>
+          <select
+            [ngModel]="newSlotDuration()"
+            (ngModelChange)="newSlotDuration.set(+$event)"
+            class="px-3 py-2 text-sm bg-white border border-[#E2E8F0] rounded-md focus:outline-none focus:border-[#1B3A6B] transition-colors"
+          >
+            <option [value]="15">15 min</option>
+            <option [value]="30">30 min</option>
+            <option [value]="45">45 min</option>
+            <option [value]="60">60 min</option>
+          </select>
+          <button
+            (click)="addSlot()"
+            [disabled]="isAdding()"
+            class="px-4 py-2 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {{ isAdding() ? 'Adding...' : 'Add slot' }}
+          </button>
+        </div>
+
+        <p class="text-xs text-[#94A3B8] mt-2">Slot duration is 30 minutes</p>
+      </div>
+    </div>
+  </div>
+</div>

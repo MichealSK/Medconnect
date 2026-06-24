@@ -1,0 +1,139 @@
+<section class="w-full bg-white py-16 lg:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div class="space-y-6">
+        <span
+          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#EEF2FF] text-[#1B3A6B]"
+        >
+          Trusted by Trusted by
+          {{ patientCount() ? (patientCount()! | number) + '+' : '...' }} patients worldwide
+        </span>
+        <h1 class="text-4xl lg:text-5xl font-medium text-[#0F1F38] leading-tight">
+          Expert medical care, wherever you are
+        </h1>
+        <p class="text-lg text-[#64748B] max-w-xl leading-relaxed">
+          Connect with board-certified doctors from around the world. Get personalized care through
+          secure video consultations, anytime, anywhere.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a
+            routerLink="/doctors"
+            class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-[#1B3A6B] rounded-md hover:bg-[#162F58] transition-colors"
+          >
+            Find a doctor
+          </a>
+          <a
+            routerLink="/home"
+            fragment="how-it-works"
+            class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-[#1B3A6B] border border-[#1B3A6B] rounded-md hover:bg-[#EEF2FF] transition-colors"
+          >
+            Learn how it works
+          </a>
+        </div>
+        <div class="flex flex-wrap items-center gap-6 pt-4">
+          <div class="flex items-center gap-2">
+            <svg
+              class="w-5 h-5 text-[#065F46]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+            <span class="text-sm text-[#64748B]">HIPAA Compliant</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg
+              class="w-5 h-5 text-[#065F46]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <span class="text-sm text-[#64748B]">End-to-end encrypted</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-[#E2E8F0] rounded-[10px] p-6">
+        <div class="space-y-4">
+          <div class="flex flex-wrap gap-2">
+            @for (specialty of specialties; track specialty) {
+              <button
+                type="button"
+                (click)="setFilter(specialty)"
+                class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                [class.bg-[#1B3A6B]]="activeFilter() === specialty"
+                [class.text-white]="activeFilter() === specialty"
+                [class.bg-[#F8FAFC]]="activeFilter() !== specialty"
+                [class.text-[#64748B]]="activeFilter() !== specialty"
+              >
+                {{ specialty }}
+              </button>
+            }
+          </div>
+
+          @if (doctors$ | async; as doctors) {
+            <div class="space-y-3 pt-2">
+              @if (doctors.length === 0) {
+                <p class="text-sm text-[#64748B] text-center py-4">No doctors found.</p>
+              }
+              @for (doctor of doctors; track doctor.id) {
+                <a
+                  [routerLink]="['/doctors', doctor.id]"
+                  class="flex items-center justify-between p-3 bg-[#F8FAFC] rounded-lg hover:bg-[#EEF2FF] transition-colors cursor-pointer"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 rounded-full bg-[#1B3A6B] flex items-center justify-center text-white text-sm font-medium shrink-0"
+                    >
+                      {{ doctor.firstName + ' ' + doctor.lastName | initials }}
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-[#0F1F38]">{{ doctor | fullName }}</p>
+
+                      <p class="text-xs text-[#64748B]">{{ doctor.specialty }}</p>
+                      <p class="text-xs text-[#64748B]">{{ doctor.languages.join(', ') }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-xs text-[#64748B]">{{ doctor.yearsExperience }} yrs exp</p>
+                    @if (doctor.averageRating) {
+                      <p class="text-xs text-[#64748B]">
+                        ⭐ {{ doctor.averageRating | number: '1.1-1' }}
+                      </p>
+                    }
+                  </div>
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="space-y-3 pt-2">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="h-16 bg-[#F8FAFC] rounded-lg animate-pulse"></div>
+              }
+            </div>
+          }
+
+          <a
+            routerLink="/doctors"
+            class="block w-full text-center py-2.5 text-sm font-medium text-[#1B3A6B] hover:text-[#162F58] transition-colors"
+          >
+            View all doctors →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
