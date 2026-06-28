@@ -45,37 +45,37 @@ jobs:
             ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:latest
             ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:${{ github.sha }}
 
-  deploy:
-    name: Deploy to Kubernetes
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure Kubernetes credentials
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_SECRET }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-
-      - name: Deploy application manifests
-        run: |
-          # Applies your configurations (Services, ConfigMaps, Secrets, Ingress, etc.)
-          kubectl apply -f k8s/
-
-      - name: Update Backend Image
-        run: |
-          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-          kubectl set image deployment/medconnect-backend backend=ghcr.io/${{ env.REPO_LC }}/backend:${{ github.sha }}
-
-      - name: Update Frontend Image
-        run: |
-          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-          kubectl set image deployment/medconnect-frontend frontend=ghcr.io/${{ env.REPO_LC }}/frontend:${{ github.sha }}
-
-      - name: Verify Deployment Rollouts
-        run: |
-          kubectl rollout status deployment/medconnect-backend
-          kubectl rollout status deployment/medconnect-frontend
+#  deploy:
+#    name: Deploy to Kubernetes
+#    needs: build-and-push
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Configure Kubernetes credentials
+#        run: |
+#          mkdir -p ~/.kube
+#          echo "${{ secrets.KUBECONFIG_SECRET }}" > ~/.kube/config
+#          chmod 600 ~/.kube/config
+#
+#      - name: Deploy application manifests
+#        run: |
+#          # Applies your configurations (Services, ConfigMaps, Secrets, Ingress, etc.)
+#          kubectl apply -f k8s/
+#
+#      - name: Update Backend Image
+#        run: |
+#          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+#          kubectl set image deployment/medconnect-backend backend=ghcr.io/${{ env.REPO_LC }}/backend:${{ github.sha }}
+#
+#      - name: Update Frontend Image
+#        run: |
+#          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+#          kubectl set image deployment/medconnect-frontend frontend=ghcr.io/${{ env.REPO_LC }}/frontend:${{ github.sha }}
+#
+#      - name: Verify Deployment Rollouts
+#        run: |
+#          kubectl rollout status deployment/medconnect-backend
+#          kubectl rollout status deployment/medconnect-frontend
