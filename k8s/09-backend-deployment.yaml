@@ -18,6 +18,8 @@ spec:
         app.kubernetes.io/name: medconnect
         app.kubernetes.io/component: backend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: backend
           image: medconnect-backend:latest
