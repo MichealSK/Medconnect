@@ -65,7 +65,7 @@ jobs:
 
       - name: Deploy application manifests
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -k k8s/
 
       - name: Update Deployment Images
         run: |
