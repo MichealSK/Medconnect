@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: mailhog
-          image: mailhog/mailhog:v1.0.1
+          image: axllent/mailpit:latest # mailhog/mailhog:v1.0.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: smtp
