@@ -70,8 +70,8 @@ jobs:
       - name: Update Deployment Images
         run: |
           REPO_LC=${GITHUB_REPOSITORY,,}
-          kubectl set image deployment/medconnect-backend backend=ghcr.io/$REPO_LC/backend:${{ github.sha }}
-          kubectl set image deployment/medconnect-frontend frontend=ghcr.io/$REPO_LC/frontend:${{ github.sha }}
+          kubectl set image deployment/backend backend=ghcr.io/$REPO_LC/backend:${{ github.sha }} -n medconnect
+          kubectl set image deployment/frontend frontend=ghcr.io/$REPO_LC/frontend:${{ github.sha }} -n medconnect
 
       - name: Verify Deployment Rollouts
         run: |
