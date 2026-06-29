@@ -75,5 +75,5 @@ jobs:
 
       - name: Verify Deployment Rollouts
         run: |
-          kubectl rollout status deployment/medconnect-backend
-          kubectl rollout status deployment/medconnect-frontend
+          kubectl rollout status deployment/backend -n medconnect
+          kubectl rollout status deployment/frontend -n medconnect
